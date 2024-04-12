@@ -29,28 +29,13 @@ public class SpreadsheetController {
     }
 
     @GetMapping("getCellValue")
-    public ResponseEntity<String>  getCellValue(@RequestParam String cellId){
-        return ResponseEntity.ok(spreadsheetService.getValue(cellId).toString());
+    public ResponseEntity<String> getCellValue(@RequestParam String cellId){
+        try{
+            return ResponseEntity.ok(spreadsheetService.getValue(cellId).toString());
+        } catch (NullPointerException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Cell Reference: " + e.getMessage());
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
+        }
     }
 }
-//    Design a spreadsheet backend which can support two operations:
-//        You can write the code in any language and provide a main method /
-//        tests to validate the code.
-
-//        void setCellValue(String cellId, Object value)
-//        int getCellValue(String cellId)
-
-//      Example:
-//        setCellValue("A1", 13)
-//        setCellValue("A2", 14)
-//          getCellValue("A1") -> 13
-
-//        setCellValue("A3", "=A1+A2")
-//          getCellValue("A3") -> 27
-
-//        setCellValue("A4", "=A1+A2+A3")
-//          getCellValue("A3") -> 54
-
-//        ● Write this in a language of your choice
-//        ● Mention edge cases and other situations you need to handle
-//        ● Attach the response via email / GitHub repo link

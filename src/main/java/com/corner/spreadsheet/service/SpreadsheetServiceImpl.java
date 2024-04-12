@@ -11,8 +11,8 @@ public class SpreadsheetServiceImpl implements SpreadsheetService{
     SpreadsheetRepository spreadsheetRepository;
 
     public Double getValue(String cellId) {
-        Spreadsheet spreadsheet = spreadsheetRepository.findByCellId(cellId);
-        return spreadsheet.getValue();
+            Spreadsheet spreadsheet = spreadsheetRepository.findByCellId(cellId);
+            return spreadsheet.getValue();
     }
 
     public void setValue(String cellId, Object value) {
