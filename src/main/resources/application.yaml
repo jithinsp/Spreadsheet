@@ -10,7 +10,5 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: update
-#  profiles:
-#    active: local
 server:
   port: 8080
