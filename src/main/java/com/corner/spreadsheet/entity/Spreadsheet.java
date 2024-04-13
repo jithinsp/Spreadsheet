@@ -14,7 +14,6 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Spreadsheet {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

@@ -5,27 +5,33 @@ import com.corner.spreadsheet.repository.SpreadsheetRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Queue;
+
 @Service
 public class SpreadsheetServiceImpl implements SpreadsheetService{
     @Autowired
     SpreadsheetRepository spreadsheetRepository;
 
+    @Override
     public Double getValue(String cellId) {
-            Spreadsheet spreadsheet = spreadsheetRepository.findByCellId(cellId);
-            return spreadsheet.getValue();
+        Spreadsheet spreadsheet = spreadsheetRepository.findByCellId(cellId);
+        return spreadsheet.getValue();
     }
 
-    public void setValue(String cellId, Object value) {
+    @Override
+    public <T> void setValue(String cellId, T value) {
         Spreadsheet spreadsheet = spreadsheetRepository.findByCellId(cellId);
         if (spreadsheet == null) {
             spreadsheet = new Spreadsheet();
             spreadsheet.setCellId(cellId);
         }
+        
         if (value instanceof String) {
             String stringValue = (String) value;
             if (stringValue.startsWith("=")) {
-                String formula = stringValue.substring(1);
-                double result = evaluate(formula);
+                double result = evaluate(stringValue);
                 spreadsheet.setValue(result);
             } else {
                 throw new IllegalArgumentException("Invalid Expression: " +stringValue);
@@ -39,16 +45,35 @@ public class SpreadsheetServiceImpl implements SpreadsheetService{
         spreadsheetRepository.save(spreadsheet);
     }
 
-    private double evaluate(String formula) {
-        double result =0;
-        String[] cells = formula.split("[+]");
+    private double evaluate(String stringValue) {
+        String formula = stringValue.substring(1);
+
+        String[] cells = formula.split("[+\\-*/]");
+        String[] operators = formula.split("[A-Z]\\d+");
+        operators = Arrays.stream(operators)
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
+
+        Queue<String> cellsQueue = new LinkedList<>();
         for (String cell : cells) {
-            Spreadsheet cellValue = spreadsheetRepository.findByCellId(cell);
-            if(cellValue!=null){
-                result += cellValue.getValue();
-            } else {
-                throw new IllegalArgumentException("Invalid cell reference: " + cell);
+            if (!cell.isEmpty()) {
+                cellsQueue.add(cell);
             }
+        }
+        double result = spreadsheetRepository.findByCellId(cellsQueue.poll()).getValue();
+        for(int i=0; i<cells.length-1;i++){
+            Spreadsheet cellValue = spreadsheetRepository.findByCellId(cellsQueue.poll());
+                switch (operators[i]){
+                    case "+" : result += cellValue.getValue(); break;
+                    case "/" :
+                        if (cellValue.getValue() == 0) {
+                        throw new ArithmeticException("Divide by zero error");
+                        }
+                        result /= cellValue.getValue(); break;
+                    case "*" : result *= cellValue.getValue(); break;
+                    case "-" : result -= cellValue.getValue(); break;
+                    default: throw new IllegalArgumentException("Invalid operator: " + operators[i]);
+                }
         }
         return result;
     }
